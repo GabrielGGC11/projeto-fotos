@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FotoPinterest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e60023;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 800px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            background-color: #f0f0f0;
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            background-color: #e9e9e9;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-gap: 20px;
+        }
+
+        .pin {
+            position: relative;
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            break-inside: avoid;
+            margin-bottom: 20px;
+        }
+
+        .pin:hover {
+            transform: translateY(-5px);
+        }
+
+        .pin img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .pin-content {
+            padding: 15px;
+        }
+
+        .pin-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .pin-author {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .pin-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .pin-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            background-color: #e60023;
+            color: white;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow: auto;
+            padding: 50px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            border-radius: 15px;
+            margin: 0 auto;
+            max-width: 800px;
+            overflow: hidden;
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-img {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            background-color: #f0f0f0;
+        }
+
+        .modal-details {
+            padding: 20px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .modal-author {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            z-index: 1010;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            
+            .modal {
+                padding: 20px;
+            }
+            
+            header {
+                flex-direction: column;
+            }
+            
+            .search-container {
+                width: 100%;
+                margin: 15px 0;
+            }
+        }
+
+        .categorias {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .categoria {
+            padding: 8px 15px;
+            background-color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .categoria.active {
+            background-color: #e60023;
+            color: white;
+        }
+
+        /* Barra de rolagem personalizada */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <span class="logo-icon">📌</span>
+            <span>FotoPinterest</span>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar fotos...">
+            <button class="search-btn">🔍</button>
+        </div>
+    </header>
+
+    <div class="categorias">
+        <div class="categoria active" data-categoria="todas">Todas</div>
+        <div class="categoria" data-categoria="natureza">Natureza</div>
+        <div class="categoria" data-categoria="arquitetura">Arquitetura</div>
+        <div class="categoria" data-categoria="comida">Comida</div>
+        <div class="categoria" data-categoria="animais">Animais</div>
+    </div>
+
+    <div class="container" id="pins-container">
+        <!-- Os pins serão adicionados aqui via JavaScript -->
+    </div>
+
+    <div class="modal" id="imageModal">
+        <button class="close-btn" id="closeModal">✖</button>
+        <div class="modal-content">
+            <img src="" alt="" class="modal-img" id="modalImg">
+            <div class="modal-details">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <p class="modal-author" id="modalAuthor"></p>
+                <div class="modal-actions">
+                    <button class="modal-btn save-btn">Salvar</button>
+                    <button class="modal-btn download-btn" id="downloadBtn">Baixar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados de exemplo reduzidos (apenas 8 imagens)
+        const imagensExemplo = [
+            {
+                id: 1,
+                titulo: "Montanhas ao Pôr do Sol",
+                autor: "Fotógrafo da Natureza",
+                categoria: "natureza",
+                url: "https://th.bing.com/th/id/OIP.9Zkyw2hC5g-osGDxmf1gIAHaEK?rs=1&pid=ImgDetMain",
+                altura: 600
+            },
+            {
+                id: 2,
+                titulo: "Arquitetura Moderna",
+                autor: "Fotografia Urbana",
+                categoria: "arquitetura",
+                url: "https://quees.mobi/wp-content/uploads/2021/06/arquitectura-moderna.jpg",
+                altura: 450
+            },
+            {
+                id: 3,
+                titulo: "Comida Gourmet",
+                autor: "Chef Fotógrafo",
+                categoria: "comida",
+                url: "https://th.bing.com/th/id/R.578d09aff0713caf475babc626183966?rik=dCjkWq0GnE1w7w&pid=ImgRaw&r=0",
+                altura: 550
+            },
+            {
+                id: 4,
+                titulo: "Cachoeira Natural",
+                autor: "Natureza Viva",
+                categoria: "natureza",
+                url: "https://th.bing.com/th/id/OIP.XinNb6IWX0UfAYm9qXBvYwHaE7?rs=1&pid=ImgDetMain",
+                altura: 700
+            },
+            {
+                id: 5,
+                titulo: "Gato Fofo",
+                autor: "Amante de Animais",
+                categoria: "animais",
+                url: "https://th.bing.com/th/id/OIP.Jx01mAyfsCtMSdBmxznsbQHaHT?rs=1&pid=ImgDetMain",
+                altura: 400
+            },
+            {
+                id: 6,
+                titulo: "Prédio Histórico",
+                autor: "História em Fotos",
+                categoria: "arquitetura",
+                url: "https://th.bing.com/th/id/R.4fae124a6985fcdf5e524b286bcdd717?rik=bJb8OT421u01zA&riu=http%3a%2f%2f4.bp.blogspot.com%2f-YWGUiRXeJ4M%2fVE-1LprpylI%2fAAAAAAAAH2c%2fniiZtM3cLWI%2fs1600%2f20141027-0002-memorial-do-rs-antiga-ect-por-ramiro-furquim-_oaf2021.jpg&ehk=Qf5T57fN%2bf3aboJBlEixgvA6Jh0xRXn5Rg78yr6gUOs%3d&risl=&pid=ImgRaw&r=0",
+                altura: 500
+            },
+            {
+                id: 7,
+                titulo: "Café da Manhã",
+                autor: "Fotógrafo Culinário",
+                categoria: "comida",
+                url: "https://th.bing.com/th/id/OIP.a78ryHqBHhTjBZLqwRY0_wHaE6?rs=1&pid=ImgDetMain",
+                altura: 480
+            },
+            {
+                id: 8,
+                titulo: "Cachorro Brincando",
+                autor: "Fotógrafo Pet",
+                categoria: "animais",
+                url: "https://th.bing.com/th/id/OIP.wFicBhM49whE5Apa6GWiCwHaE8?rs=1&pid=ImgDetMain",
+                altura: 420
+            }
+        ];
+
+        // Elementos DOM
+        const pinsContainer = document.getElementById('pins-container');
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImg');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalAuthor = document.getElementById('modalAuthor');
+        const closeModal = document.getElementById('closeModal');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const searchInput = document.querySelector('.search-input');
+        const searchBtn = document.querySelector('.search-btn');
+        const categorias = document.querySelectorAll('.categoria');
+
+        let imagensExibidas = [];
+        let categoriaAtual = 'todas';
+
+        // Carregar pins iniciais
+        window.addEventListener('DOMContentLoaded', () => {
+            renderizarPins(imagensExemplo);
+        });
+
+        // Função para renderizar os pins
+        function renderizarPins(imagens) {
+            pinsContainer.innerHTML = '';
+            imagensExibidas = imagens;
+            
+            if (imagens.length === 0) {
+                pinsContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 30px;">Nenhuma imagem encontrada.</p>';
+                return;
+            }
+
+            imagens.forEach(imagem => {
+                const pin = document.createElement('div');
+                pin.className = 'pin';
+                
+                // Definir altura dinâmica para criar efeito masonry
+                pin.innerHTML = `
+                    <img src="${imagem.url}" alt="${imagem.titulo}" style="height: ${imagem.altura}px;">
+                    <div class="pin-content">
+                        <h3 class="pin-title">${imagem.titulo}</h3>
+                        <p class="pin-author">${imagem.autor}</p>
+                        <div class="pin-actions">
+                            <button class="pin-btn save-btn">Salvar</button>
+                            <button class="pin-btn download-btn" data-id="${imagem.id}">Baixar</button>
+                        </div>
+                    </div>
+                `;
+                
+                // Adicionar evento de clique para abrir o modal
+                pin.querySelector('img').addEventListener('click', () => {
+                    abrirModal(imagem);
+                });
+                
+                // Adicionar evento para botão de download
+                pin.querySelector('.download-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    baixarImagem(imagem);
+                });
+                
+                pinsContainer.appendChild(pin);
+            });
+        }
+
+        // Função para abrir o modal
+        function abrirModal(imagem) {
+            modalImg.src = imagem.url;
+            modalTitle.textContent = imagem.titulo;
+            modalAuthor.textContent = imagem.autor;
+            
+            // Configurar botão de download no modal
+            downloadBtn.onclick = () => baixarImagem(imagem);
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Previne rolagem quando modal está aberto
+        }
+
+        // Função para baixar imagem
+        function baixarImagem(imagem) {
+            // Em um cenário real, usaríamos a API Fetch para baixar a imagem
+            // Como são imagens de placeholder, vamos simular o download
+            const link = document.createElement('a');
+            link.href = imagem.url;
+            link.download = `${imagem.titulo.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Fechar modal
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restaura rolagem
+        });
+
+        // Fechar modal clicando fora
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Funcionalidade de pesquisa
+        function pesquisar() {
+            const termo = searchInput.value.toLowerCase().trim();
+            
+            let resultados = [];
+            
+            if (categoriaAtual === 'todas') {
+                resultados = imagensExemplo.filter(img => 
+                    img.titulo.toLowerCase().includes(termo) || 
+                    img.autor.toLowerCase().includes(termo)
+                );
+            } else {
+                resultados = imagensExemplo.filter(img => 
+                    (img.titulo.toLowerCase().includes(termo) || 
+                    img.autor.toLowerCase().includes(termo)) &&
+                    img.categoria === categoriaAtual
+                );
+            }
+            
+            renderizarPins(resultados);
+        }
+
+        searchBtn.addEventListener('click', pesquisar);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                pesquisar();
+            }
+        });
+
+        // Filtrar por categorias
+        categorias.forEach(categoria => {
+            categoria.addEventListener('click', () => {
+                categorias.forEach(c => c.classList.remove('active'));
+                categoria.classList.add('active');
+                
+                categoriaAtual = categoria.dataset.categoria;
+                
+                if (categoriaAtual === 'todas') {
+                    renderizarPins(imagensExemplo);
+                } else {
+                    const filtradas = imagensExemplo.filter(img => img.categoria === categoriaAtual);
+                    renderizarPins(filtradas);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
